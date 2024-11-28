@@ -1,0 +1,8 @@
+README.md
+setup.py
+Disease_Prediction.egg-info/PKG-INFO
+Disease_Prediction.egg-info/SOURCES.txt
+Disease_Prediction.egg-info/dependency_links.txt
+Disease_Prediction.egg-info/requires.txt
+Disease_Prediction.egg-info/top_level.txt
+src/__init__.py

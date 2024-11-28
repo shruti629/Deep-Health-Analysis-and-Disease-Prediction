@@ -1,0 +1,8 @@
+Metadata-Version: 2.1
+Name: Disease-Prediction
+Version: 0.0.1
+Author-email: shrutikumaridss@gmail.com
+Requires-Dist: pandas
+Requires-Dist: scikit-learn
+Requires-Dist: numpy
+Requires-Dist: flask
