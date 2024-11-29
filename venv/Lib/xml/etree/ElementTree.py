@@ -245,7 +245,7 @@ class Element:
         """
         for element in elements:
             self._assert_is_element(element)
-        self._children.extend(elements)
+            self._children.append(element)
 
     def insert(self, index, subelement):
         """Insert *subelement* at position *index*."""
@@ -1303,6 +1303,11 @@ class XMLPullParser:
             else:
                 yield event
 
+    def flush(self):
+        if self._parser is None:
+            raise ValueError("flush() called after end of stream")
+        self._parser.flush()
+
 
 def XML(text, parser=None):
     """Parse XML document from string constant.
@@ -1711,6 +1716,15 @@ class XMLParser:
             del self.parser, self._parser
             del self.target, self._target
 
+    def flush(self):
+        was_enabled = self.parser.GetReparseDeferralEnabled()
+        try:
+            self.parser.SetReparseDeferralEnabled(False)
+            self.parser.Parse(b"", False)
+        except self._error as v:
+            self._raiseerror(v)
+        finally:
+            self.parser.SetReparseDeferralEnabled(was_enabled)
 
 # --------------------------------------------------------------------
 # C14N 2.0
@@ -1848,6 +1862,11 @@ class C14NWriterTarget:
             if u == uri:
                 self._declared_ns_stack[-1].append((uri, prefix))
                 return f'{prefix}:{tag}' if prefix else tag, tag, uri
+
+        if not uri:
+            # As soon as a default namespace is defined,
+            # anything that has no namespace (and thus, no prefix) goes there.
+            return tag, tag, uri
 
         raise ValueError(f'Namespace "{uri}" is not declared in scope')
 

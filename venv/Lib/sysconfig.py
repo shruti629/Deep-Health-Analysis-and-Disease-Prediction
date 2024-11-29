@@ -18,6 +18,11 @@ __all__ = [
     'parse_config_h',
 ]
 
+# Keys for get_config_var() that are never converted to Python integers.
+_ALWAYS_STR = {
+    'MACOSX_DEPLOYMENT_TARGET',
+}
+
 _INSTALL_SCHEMES = {
     'posix_prefix': {
         'stdlib': '{installed_base}/lib/python{py_version_short}',
@@ -242,6 +247,9 @@ def _parse_makefile(filename, vars=None):
                 notdone[n] = v
             else:
                 try:
+                    if n in _ALWAYS_STR:
+                        raise ValueError
+
                     v = int(v)
                 except ValueError:
                     # insert literal `$'
@@ -300,6 +308,8 @@ def _parse_makefile(filename, vars=None):
                         notdone[name] = value
                     else:
                         try:
+                            if name in _ALWAYS_STR:
+                                raise ValueError
                             value = int(value)
                         except ValueError:
                             done[name] = value.strip()
@@ -343,21 +353,13 @@ def get_makefile_filename():
     return os.path.join(get_path('stdlib'), config_dir_name, 'Makefile')
 
 
-def _get_sysconfigdata_name(check_exists=False):
-    for envvar in ('_PYTHON_SYSCONFIGDATA_NAME', '_CONDA_PYTHON_SYSCONFIGDATA_NAME'):
-        res = os.environ.get(envvar, None)
-        if res and check_exists:
-            try:
-                import importlib.util
-                loader = importlib.util.find_spec(res)
-            except:
-                res = None
-        if res:
-            return res
-    return '_sysconfigdata_{abi}_{platform}_{multiarch}'.format(
-            abi=sys.abiflags,
-            platform=sys.platform,
-            multiarch=getattr(sys.implementation, '_multiarch', ''))
+def _get_sysconfigdata_name():
+    return os.environ.get('_PYTHON_SYSCONFIGDATA_NAME',
+        '_sysconfigdata_{abi}_{platform}_{multiarch}'.format(
+        abi=sys.abiflags,
+        platform=sys.platform,
+        multiarch=getattr(sys.implementation, '_multiarch', ''),
+    ))
 
 
 def _generate_posix_vars():
@@ -426,7 +428,7 @@ def _generate_posix_vars():
 def _init_posix(vars):
     """Initialize the module as appropriate for POSIX systems."""
     # _sysconfigdata is generated at build time, see _generate_posix_vars()
-    name = _get_sysconfigdata_name(True)
+    name = _get_sysconfigdata_name()
     _temp = __import__(name, globals(), locals(), ['build_time_vars'], 0)
     build_time_vars = _temp.build_time_vars
     vars.update(build_time_vars)
@@ -434,10 +436,11 @@ def _init_posix(vars):
 def _init_non_posix(vars):
     """Initialize the module as appropriate for NT"""
     # set basic install directories
+    import _imp
     vars['LIBDEST'] = get_path('stdlib')
     vars['BINLIBDEST'] = get_path('platstdlib')
     vars['INCLUDEPY'] = get_path('include')
-    vars['EXT_SUFFIX'] = '.pyd'
+    vars['EXT_SUFFIX'] = _imp.extension_suffixes()[0]
     vars['EXE'] = '.exe'
     vars['VERSION'] = _PY_VERSION_SHORT_NO_DOT
     vars['BINDIR'] = os.path.dirname(_safe_realpath(sys.executable))
@@ -468,6 +471,8 @@ def parse_config_h(fp, vars=None):
         if m:
             n, v = m.group(1, 2)
             try:
+                if n in _ALWAYS_STR:
+                    raise ValueError
                 v = int(v)
             except ValueError:
                 pass

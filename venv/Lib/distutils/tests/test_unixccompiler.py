@@ -59,7 +59,7 @@ class UnixCCompilerTestCase(unittest.TestCase):
             elif v == 'GNULD':
                 return 'yes'
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,-R/foo')
+        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
 
         # GCC non-GNULD
         sys.platform = 'bar'
@@ -69,7 +69,7 @@ class UnixCCompilerTestCase(unittest.TestCase):
             elif v == 'GNULD':
                 return 'no'
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--disable-new-dtags,-R/foo')
+        self.assertEqual(self.cc.rpath_foo(), '-Wl,-R/foo')
 
         # GCC GNULD with fully qualified configuration prefix
         # see #7617
