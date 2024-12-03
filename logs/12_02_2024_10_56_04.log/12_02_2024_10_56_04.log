@@ -1,0 +1,3 @@
+[2024-12-02 10:56:14,779] 25 root - INFO - Data Ingestion method starts
+[2024-12-02 10:56:14,834] 30 root - INFO - Dataset read as pandas DataFrame
+[2024-12-02 10:56:14,846] 66 root - ERROR - Exception occurred at Data Ingestion Stage
