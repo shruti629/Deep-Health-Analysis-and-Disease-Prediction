@@ -1,4 +1,4 @@
-🧠 #Deep Health Analysis and Disease Prediction using Machine Learning
+🧠 Deep Health Analysis and Disease Prediction using Machine Learning
 
 This project is a comprehensive system designed to predict multiple diseases using machine learning models and provide actionable health insights, including food, exercise, medicines, symptoms, and precautions tailored to the predicted disease.
 
